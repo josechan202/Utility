@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Format Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .converter {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output-textarea {
+            background-color: #f8f9fa;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .convert-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .clear-btn {
+            background: #f44336;
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+        }
+
+        .error {
+            grid-column: 1 / -1;
+            padding: 15px;
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 4px;
+            color: #c62828;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .converter {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Format Converter</h1>
+            <div class="subtitle">Convert between JSON, XML, YAML, and CSV</div>
+        </header>
+
+        <div class="converter">
+            <div class="panel">
+                <div class="panel-header">
+                    <label for="input-format">From:</label>
+                    <select id="input-format">
+                        <option value="json">JSON</option>
+                        <option value="xml">XML</option>
+                        <option value="yaml">YAML</option>
+                        <option value="csv">CSV</option>
+                    </select>
+                </div>
+                <textarea id="input" placeholder="Paste your data here..."></textarea>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <label for="output-format">To:</label>
+                    <select id="output-format">
+                        <option value="json">JSON</option>
+                        <option value="xml">XML</option>
+                        <option value="yaml">YAML</option>
+                        <option value="csv">CSV</option>
+                    </select>
+                </div>
+                <textarea id="output" class="output-textarea" placeholder="Converted data will appear here..." readonly></textarea>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="controls">
+                <button class="convert-btn" onclick="convert()">Convert</button>
+                <button class="clear-btn" onclick="clearAll()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('error');
+            errorDiv.classList.remove('show');
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            hideError();
+        }
+
+        function xmlToJson(xml) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xml, 'text/xml');
+
+            if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                throw new Error('Invalid XML format');
+            }
+
+            function parseNode(node) {
+                if (node.nodeType === 3) { // Text node
+                    return node.nodeValue.trim();
+                }
+
+                const obj = {};
+
+                // Handle attributes
+                if (node.attributes && node.attributes.length > 0) {
+                    obj['@attributes'] = {};
+                    for (let i = 0; i < node.attributes.length; i++) {
+                        const attr = node.attributes[i];
+                        obj['@attributes'][attr.name] = attr.value;
+                    }
+                }
+
+                // Handle child nodes
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    const child = node.childNodes[i];
+
+                    if (child.nodeType === 3) { // Text node
+                        const text = child.nodeValue.trim();
+                        if (text) {
+                            if (Object.keys(obj).length === 0) {
+                                return text;
+                            }
+                            obj['#text'] = text;
+                        }
+                        continue;
+                    }
+
+                    const nodeName = child.nodeName;
+                    const nodeValue = parseNode(child);
+
+                    if (obj[nodeName]) {
+                        if (!Array.isArray(obj[nodeName])) {
+                            obj[nodeName] = [obj[nodeName]];
+                        }
+                        obj[nodeName].push(nodeValue);
+                    } else {
+                        obj[nodeName] = nodeValue;
+                    }
+                }
+
+                return obj;
+            }
+
+            return parseNode(xmlDoc.documentElement);
+        }
+
+        function jsonToXml(obj, rootName = 'root') {
+            function buildXml(data, nodeName) {
+                if (data === null || data === undefined) {
+                    return `<${nodeName}/>`;
+                }
+
+                if (typeof data !== 'object') {
+                    return `<${nodeName}>${escapeXml(String(data))}</${nodeName}>`;
+                }
+
+                if (Array.isArray(data)) {
+                    return data.map(item => buildXml(item, nodeName)).join('');
+                }
+
+                let xml = `<${nodeName}`;
+                let content = '';
+
+                // Handle attributes
+                if (data['@attributes']) {
+                    for (let [key, value] of Object.entries(data['@attributes'])) {
+                        xml += ` ${key}="${escapeXml(String(value))}"`;
+                    }
+                    delete data['@attributes'];
+                }
+
+                xml += '>';
+
+                // Handle text content
+                if (data['#text']) {
+                    content += escapeXml(String(data['#text']));
+                    delete data['#text'];
+                }
+
+                // Handle child elements
+                for (let [key, value] of Object.entries(data)) {
+                    if (Array.isArray(value)) {
+                        content += value.map(item => buildXml(item, key)).join('');
+                    } else {
+                        content += buildXml(value, key);
+                    }
+                }
+
+                xml += content + `</${nodeName}>`;
+                return xml;
+            }
+
+            function escapeXml(str) {
+                return str.replace(/[<>&'"]/g, (char) => {
+                    switch (char) {
+                        case '<': return '&lt;';
+                        case '>': return '&gt;';
+                        case '&': return '&amp;';
+                        case "'": return '&apos;';
+                        case '"': return '&quot;';
+                    }
+                });
+            }
+
+            return '<?xml version="1.0" encoding="UTF-8"?>\n' + buildXml(obj, rootName);
+        }
+
+        function jsonToCsv(data) {
+            let array = data;
+            if (!Array.isArray(data)) {
+                array = [data];
+            }
+
+            const csv = Papa.unparse(array);
+            return csv;
+        }
+
+        function csvToJson(csv) {
+            const result = Papa.parse(csv, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true
+            });
+
+            if (result.errors.length > 0) {
+                throw new Error('CSV parsing error: ' + result.errors[0].message);
+            }
+
+            return result.data;
+        }
+
+        function convert() {
+            hideError();
+
+            const inputFormat = document.getElementById('input-format').value;
+            const outputFormat = document.getElementById('output-format').value;
+            const inputText = document.getElementById('input').value.trim();
+            const outputTextarea = document.getElementById('output');
+
+            if (!inputText) {
+                showError('Please enter some data to convert');
+                return;
+            }
+
+            if (inputFormat === outputFormat) {
+                outputTextarea.value = inputText;
+                return;
+            }
+
+            try {
+                let intermediateData;
+
+                // Convert input to JSON (intermediate format)
+                switch (inputFormat) {
+                    case 'json':
+                        intermediateData = JSON.parse(inputText);
+                        break;
+                    case 'xml':
+                        intermediateData = xmlToJson(inputText);
+                        break;
+                    case 'yaml':
+                        intermediateData = jsyaml.load(inputText);
+                        break;
+                    case 'csv':
+                        intermediateData = csvToJson(inputText);
+                        break;
+                }
+
+                // Convert JSON to output format
+                let output;
+                switch (outputFormat) {
+                    case 'json':
+                        output = JSON.stringify(intermediateData, null, 2);
+                        break;
+                    case 'xml':
+                        output = jsonToXml(intermediateData);
+                        break;
+                    case 'yaml':
+                        output = jsyaml.dump(intermediateData);
+                        break;
+                    case 'csv':
+                        output = jsonToCsv(intermediateData);
+                        break;
+                }
+
+                outputTextarea.value = output;
+            } catch (error) {
+                showError('Conversion error: ' + error.message);
+                outputTextarea.value = '';
+            }
+        }
+
+        // Allow Enter key to trigger conversion
+        document.getElementById('input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                convert();
+            }
+        });
+    </script>
+</body>
+</html>

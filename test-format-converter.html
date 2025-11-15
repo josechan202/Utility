@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Format Converter - Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .passed { color: #4caf50; }
+        .failed { color: #f44336; }
+        .total { color: #2196f3; }
+
+        .controls {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .test-results {
+            padding: 20px;
+        }
+
+        .test-group {
+            margin-bottom: 30px;
+        }
+
+        .test-group-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .test-case {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+
+        .test-case.pass {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .test-case.fail {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .test-case.running {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .test-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .test-name::before {
+            content: '✓ ';
+            font-weight: bold;
+        }
+
+        .test-case.fail .test-name::before {
+            content: '✗ ';
+        }
+
+        .test-case.running .test-name::before {
+            content: '⟳ ';
+        }
+
+        .test-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .test-error {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #d32f2f;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .running .test-name::before {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Format Converter Test Suite</h1>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number total" id="total-tests">0</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number passed" id="passed-tests">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number failed" id="failed-tests">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="run-tests" onclick="runAllTests()">Run All Tests</button>
+        </div>
+
+        <div class="test-results" id="results"></div>
+    </div>
+
+    <!-- External Libraries (same as main converter) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        // Import converter functions (duplicated from main file)
+        function xmlToJson(xml) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xml, 'text/xml');
+
+            if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                throw new Error('Invalid XML format');
+            }
+
+            function parseNode(node) {
+                if (node.nodeType === 3) {
+                    return node.nodeValue.trim();
+                }
+
+                const obj = {};
+
+                if (node.attributes && node.attributes.length > 0) {
+                    obj['@attributes'] = {};
+                    for (let i = 0; i < node.attributes.length; i++) {
+                        const attr = node.attributes[i];
+                        obj['@attributes'][attr.name] = attr.value;
+                    }
+                }
+
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    const child = node.childNodes[i];
+
+                    if (child.nodeType === 3) {
+                        const text = child.nodeValue.trim();
+                        if (text) {
+                            if (Object.keys(obj).length === 0) {
+                                return text;
+                            }
+                            obj['#text'] = text;
+                        }
+                        continue;
+                    }
+
+                    const nodeName = child.nodeName;
+                    const nodeValue = parseNode(child);
+
+                    if (obj[nodeName]) {
+                        if (!Array.isArray(obj[nodeName])) {
+                            obj[nodeName] = [obj[nodeName]];
+                        }
+                        obj[nodeName].push(nodeValue);
+                    } else {
+                        obj[nodeName] = nodeValue;
+                    }
+                }
+
+                return obj;
+            }
+
+            return parseNode(xmlDoc.documentElement);
+        }
+
+        function jsonToXml(obj, rootName = 'root') {
+            function buildXml(data, nodeName) {
+                if (data === null || data === undefined) {
+                    return `<${nodeName}/>`;
+                }
+
+                if (typeof data !== 'object') {
+                    return `<${nodeName}>${escapeXml(String(data))}</${nodeName}>`;
+                }
+
+                if (Array.isArray(data)) {
+                    return data.map(item => buildXml(item, nodeName)).join('');
+                }
+
+                let xml = `<${nodeName}`;
+                let content = '';
+
+                if (data['@attributes']) {
+                    for (let [key, value] of Object.entries(data['@attributes'])) {
+                        xml += ` ${key}="${escapeXml(String(value))}"`;
+                    }
+                }
+
+                xml += '>';
+
+                if (data['#text']) {
+                    content += escapeXml(String(data['#text']));
+                }
+
+                for (let [key, value] of Object.entries(data)) {
+                    if (key !== '@attributes' && key !== '#text') {
+                        if (Array.isArray(value)) {
+                            content += value.map(item => buildXml(item, key)).join('');
+                        } else {
+                            content += buildXml(value, key);
+                        }
+                    }
+                }
+
+                xml += content + `</${nodeName}>`;
+                return xml;
+            }
+
+            function escapeXml(str) {
+                return str.replace(/[<>&'"]/g, (char) => {
+                    switch (char) {
+                        case '<': return '&lt;';
+                        case '>': return '&gt;';
+                        case '&': return '&amp;';
+                        case "'": return '&apos;';
+                        case '"': return '&quot;';
+                    }
+                });
+            }
+
+            return '<?xml version="1.0" encoding="UTF-8"?>\n' + buildXml(obj, rootName);
+        }
+
+        function jsonToCsv(data) {
+            let array = data;
+            if (!Array.isArray(data)) {
+                array = [data];
+            }
+            return Papa.unparse(array);
+        }
+
+        function csvToJson(csv) {
+            const result = Papa.parse(csv, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true
+            });
+
+            if (result.errors.length > 0) {
+                throw new Error('CSV parsing error: ' + result.errors[0].message);
+            }
+
+            return result.data;
+        }
+
+        // Test framework
+        let testResults = [];
+        let currentTestIndex = 0;
+
+        class TestCase {
+            constructor(name, description, testFn) {
+                this.name = name;
+                this.description = description;
+                this.testFn = testFn;
+                this.status = 'pending';
+                this.error = null;
+            }
+
+            async run() {
+                this.status = 'running';
+                try {
+                    await this.testFn();
+                    this.status = 'pass';
+                } catch (error) {
+                    this.status = 'fail';
+                    this.error = error.message;
+                }
+            }
+        }
+
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'Assertion failed');
+            }
+        }
+
+        function assertEqual(actual, expected, message) {
+            if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                throw new Error(message || `Expected ${JSON.stringify(expected)}, but got ${JSON.stringify(actual)}`);
+            }
+        }
+
+        function assertContains(str, substring, message) {
+            if (!str.includes(substring)) {
+                throw new Error(message || `Expected string to contain "${substring}"`);
+            }
+        }
+
+        function assertThrows(fn, message) {
+            try {
+                fn();
+                throw new Error(message || 'Expected function to throw an error');
+            } catch (error) {
+                if (error.message === message || error.message.includes('Expected function to throw')) {
+                    throw error;
+                }
+            }
+        }
+
+        // Define test groups
+        const testGroups = [
+            {
+                name: 'JSON to XML Conversion',
+                tests: [
+                    new TestCase(
+                        'Simple object conversion',
+                        'Convert a simple JSON object to XML',
+                        () => {
+                            const json = { name: 'John', age: 30 };
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '<name>John</name>');
+                            assertContains(xml, '<age>30</age>');
+                        }
+                    ),
+                    new TestCase(
+                        'Nested object conversion',
+                        'Convert nested JSON objects to XML',
+                        () => {
+                            const json = { person: { name: 'John', address: { city: 'NYC' } } };
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '<person>');
+                            assertContains(xml, '<name>John</name>');
+                            assertContains(xml, '<city>NYC</city>');
+                        }
+                    ),
+                    new TestCase(
+                        'Array conversion',
+                        'Convert JSON arrays to XML',
+                        () => {
+                            const json = { items: ['apple', 'banana', 'cherry'] };
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '<items>apple</items>');
+                            assertContains(xml, '<items>banana</items>');
+                        }
+                    ),
+                    new TestCase(
+                        'Special characters escaping',
+                        'Properly escape special XML characters',
+                        () => {
+                            const json = { text: '<tag> & "quotes"' };
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '&lt;tag&gt;');
+                            assertContains(xml, '&amp;');
+                            assertContains(xml, '&quot;');
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'XML to JSON Conversion',
+                tests: [
+                    new TestCase(
+                        'Simple XML parsing',
+                        'Parse simple XML to JSON',
+                        () => {
+                            const xml = '<?xml version="1.0"?><person><name>John</name><age>30</age></person>';
+                            const json = xmlToJson(xml);
+                            assertEqual(json.name, 'John');
+                            assertEqual(json.age, '30');
+                        }
+                    ),
+                    new TestCase(
+                        'XML with attributes',
+                        'Parse XML attributes correctly',
+                        () => {
+                            const xml = '<person id="123"><name>John</name></person>';
+                            const json = xmlToJson(xml);
+                            assert(json['@attributes']);
+                            assertEqual(json['@attributes'].id, '123');
+                        }
+                    ),
+                    new TestCase(
+                        'Invalid XML handling',
+                        'Throw error for invalid XML',
+                        () => {
+                            const xml = '<invalid><unclosed>';
+                            assertThrows(() => xmlToJson(xml));
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'JSON to YAML Conversion',
+                tests: [
+                    new TestCase(
+                        'Simple object to YAML',
+                        'Convert JSON object to YAML format',
+                        () => {
+                            const json = { name: 'John', age: 30 };
+                            const yaml = jsyaml.dump(json);
+                            assertContains(yaml, 'name: John');
+                            assertContains(yaml, 'age: 30');
+                        }
+                    ),
+                    new TestCase(
+                        'Array to YAML',
+                        'Convert JSON array to YAML format',
+                        () => {
+                            const json = { items: ['apple', 'banana'] };
+                            const yaml = jsyaml.dump(json);
+                            assertContains(yaml, 'items:');
+                            assertContains(yaml, '- apple');
+                        }
+                    ),
+                    new TestCase(
+                        'Nested structures to YAML',
+                        'Convert nested JSON to YAML',
+                        () => {
+                            const json = { user: { name: 'John', settings: { theme: 'dark' } } };
+                            const yaml = jsyaml.dump(json);
+                            assertContains(yaml, 'user:');
+                            assertContains(yaml, 'theme: dark');
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'YAML to JSON Conversion',
+                tests: [
+                    new TestCase(
+                        'Simple YAML parsing',
+                        'Parse simple YAML to JSON',
+                        () => {
+                            const yaml = 'name: John\nage: 30';
+                            const json = jsyaml.load(yaml);
+                            assertEqual(json.name, 'John');
+                            assertEqual(json.age, 30);
+                        }
+                    ),
+                    new TestCase(
+                        'YAML array parsing',
+                        'Parse YAML arrays correctly',
+                        () => {
+                            const yaml = 'items:\n  - apple\n  - banana';
+                            const json = jsyaml.load(yaml);
+                            assert(Array.isArray(json.items));
+                            assertEqual(json.items.length, 2);
+                        }
+                    ),
+                    new TestCase(
+                        'Invalid YAML handling',
+                        'Throw error for invalid YAML',
+                        () => {
+                            const yaml = 'invalid: [\n  unclosed';
+                            assertThrows(() => jsyaml.load(yaml));
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'JSON to CSV Conversion',
+                tests: [
+                    new TestCase(
+                        'Array of objects to CSV',
+                        'Convert JSON array to CSV format',
+                        () => {
+                            const json = [
+                                { name: 'John', age: 30 },
+                                { name: 'Jane', age: 25 }
+                            ];
+                            const csv = jsonToCsv(json);
+                            assertContains(csv, 'name');
+                            assertContains(csv, 'John');
+                            assertContains(csv, 'Jane');
+                        }
+                    ),
+                    new TestCase(
+                        'Single object to CSV',
+                        'Convert single JSON object to CSV',
+                        () => {
+                            const json = { name: 'John', age: 30 };
+                            const csv = jsonToCsv(json);
+                            assertContains(csv, 'name,age');
+                            assertContains(csv, 'John,30');
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'CSV to JSON Conversion',
+                tests: [
+                    new TestCase(
+                        'Simple CSV parsing',
+                        'Parse CSV with headers to JSON',
+                        () => {
+                            const csv = 'name,age\nJohn,30\nJane,25';
+                            const json = csvToJson(csv);
+                            assert(Array.isArray(json));
+                            assertEqual(json.length, 2);
+                            assertEqual(json[0].name, 'John');
+                        }
+                    ),
+                    new TestCase(
+                        'CSV with quoted fields',
+                        'Handle quoted CSV fields correctly',
+                        () => {
+                            const csv = 'name,description\nJohn,"A person, with commas"';
+                            const json = csvToJson(csv);
+                            assertEqual(json[0].description, 'A person, with commas');
+                        }
+                    ),
+                    new TestCase(
+                        'Empty CSV handling',
+                        'Handle empty CSV gracefully',
+                        () => {
+                            const csv = '';
+                            const json = csvToJson(csv);
+                            assertEqual(json.length, 0);
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'Edge Cases',
+                tests: [
+                    new TestCase(
+                        'Empty object conversion',
+                        'Handle empty objects correctly',
+                        () => {
+                            const json = {};
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '<root');
+                        }
+                    ),
+                    new TestCase(
+                        'Null values',
+                        'Handle null values in JSON',
+                        () => {
+                            const json = { value: null };
+                            const xml = jsonToXml(json);
+                            assertContains(xml, '<value/>');
+                        }
+                    ),
+                    new TestCase(
+                        'Boolean values',
+                        'Handle boolean values correctly',
+                        () => {
+                            const json = { active: true, disabled: false };
+                            const yaml = jsyaml.dump(json);
+                            assertContains(yaml, 'true');
+                            assertContains(yaml, 'false');
+                        }
+                    ),
+                    new TestCase(
+                        'Number precision',
+                        'Maintain number precision',
+                        () => {
+                            const json = { value: 123.456 };
+                            const yaml = jsyaml.dump(json);
+                            const parsed = jsyaml.load(yaml);
+                            assertEqual(parsed.value, 123.456);
+                        }
+                    )
+                ]
+            },
+            {
+                name: 'Round-trip Conversions',
+                tests: [
+                    new TestCase(
+                        'JSON -> YAML -> JSON',
+                        'Data should survive JSON->YAML->JSON conversion',
+                        () => {
+                            const original = { name: 'Test', values: [1, 2, 3] };
+                            const yaml = jsyaml.dump(original);
+                            const result = jsyaml.load(yaml);
+                            assertEqual(result, original);
+                        }
+                    ),
+                    new TestCase(
+                        'JSON -> CSV -> JSON',
+                        'Array data should survive JSON->CSV->JSON conversion',
+                        () => {
+                            const original = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
+                            const csv = jsonToCsv(original);
+                            const result = csvToJson(csv);
+                            assertEqual(result[0].name, original[0].name);
+                            assertEqual(result[1].name, original[1].name);
+                        }
+                    )
+                ]
+            }
+        ];
+
+        function renderTestResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            testGroups.forEach(group => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'test-group';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'test-group-title';
+                titleDiv.textContent = group.name;
+                groupDiv.appendChild(titleDiv);
+
+                group.tests.forEach(test => {
+                    const testDiv = document.createElement('div');
+                    testDiv.className = `test-case ${test.status}`;
+
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'test-name';
+                    nameDiv.textContent = test.name;
+                    testDiv.appendChild(nameDiv);
+
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'test-details';
+                    detailsDiv.textContent = test.description;
+                    testDiv.appendChild(detailsDiv);
+
+                    if (test.error) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'test-error';
+                        errorDiv.textContent = test.error;
+                        testDiv.appendChild(errorDiv);
+                    }
+
+                    groupDiv.appendChild(testDiv);
+                });
+
+                resultsDiv.appendChild(groupDiv);
+            });
+
+            updateStats();
+        }
+
+        function updateStats() {
+            let total = 0;
+            let passed = 0;
+            let failed = 0;
+
+            testGroups.forEach(group => {
+                group.tests.forEach(test => {
+                    total++;
+                    if (test.status === 'pass') passed++;
+                    if (test.status === 'fail') failed++;
+                });
+            });
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('passed-tests').textContent = passed;
+            document.getElementById('failed-tests').textContent = failed;
+
+            const progress = total > 0 ? ((passed + failed) / total) * 100 : 0;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        async function runAllTests() {
+            const button = document.getElementById('run-tests');
+            button.disabled = true;
+            button.textContent = 'Running Tests...';
+
+            // Reset all tests
+            testGroups.forEach(group => {
+                group.tests.forEach(test => {
+                    test.status = 'pending';
+                    test.error = null;
+                });
+            });
+
+            renderTestResults();
+
+            // Run tests sequentially with animation
+            for (const group of testGroups) {
+                for (const test of group.tests) {
+                    await test.run();
+                    renderTestResults();
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for visual effect
+                }
+            }
+
+            button.disabled = false;
+            button.textContent = 'Run All Tests';
+        }
+
+        // Initial render
+        renderTestResults();
+    </script>
+</body>
+</html>
