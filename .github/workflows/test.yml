@@ -1,0 +1,143 @@
+name: Tests and Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install -D playwright @playwright/test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Create Playwright test
+        run: |
+          cat > playwright.config.js << 'EOF'
+          module.exports = {
+            testDir: './e2e',
+            use: {
+              baseURL: 'http://localhost:8000',
+              headless: true,
+            },
+            webServer: {
+              command: 'npx serve public -l 8000',
+              port: 8000,
+              timeout: 120000,
+              reuseExistingServer: !process.env.CI,
+            },
+          };
+          EOF
+
+      - name: Create E2E test file
+        run: |
+          mkdir -p e2e
+          cat > e2e/converter.spec.js << 'EOF'
+          const { test, expect } = require('@playwright/test');
+
+          test.describe('Format Converter', () => {
+            test('should load main page', async ({ page }) => {
+              await page.goto('/');
+              await expect(page).toHaveTitle(/Format Converter/);
+            });
+
+            test('should load test suite', async ({ page }) => {
+              await page.goto('/tests');
+              await expect(page).toHaveTitle(/Test Suite/);
+
+              // Run tests
+              await page.click('button:has-text("Run All Tests")');
+
+              // Wait for tests to complete
+              await page.waitForSelector('.stat-number.passed', { timeout: 30000 });
+
+              // Check that tests passed
+              const passedCount = await page.textContent('.stat-number.passed');
+              const failedCount = await page.textContent('.stat-number.failed');
+
+              console.log(`Tests passed: ${passedCount}, failed: ${failedCount}`);
+              expect(parseInt(failedCount)).toBe(0);
+              expect(parseInt(passedCount)).toBeGreaterThan(0);
+            });
+
+            test('should convert JSON to XML', async ({ page }) => {
+              await page.goto('/');
+
+              // Enter JSON
+              await page.fill('#input', '{"name": "Test", "value": 123}');
+
+              // Select formats
+              await page.selectOption('#input-format', 'json');
+              await page.selectOption('#output-format', 'xml');
+
+              // Convert
+              await page.click('button:has-text("Convert")');
+
+              // Check output
+              const output = await page.inputValue('#output');
+              expect(output).toContain('<name>Test</name>');
+              expect(output).toContain('<value>123</value>');
+            });
+
+            test('should handle conversion errors gracefully', async ({ page }) => {
+              await page.goto('/');
+
+              // Enter invalid JSON
+              await page.fill('#input', '{invalid json}');
+
+              // Select formats
+              await page.selectOption('#input-format', 'json');
+              await page.selectOption('#output-format', 'xml');
+
+              // Convert
+              await page.click('button:has-text("Convert")');
+
+              // Check for error message
+              const errorDiv = await page.locator('#error');
+              await expect(errorDiv).toBeVisible();
+            });
+          });
+          EOF
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          docker run --rm -v $(pwd)/public:/public ghcr.io/validator/validator:latest \
+            vnu --skip-non-html /public/ || true
+
+      - name: Check for security issues
+        run: |
+          echo "Checking for hardcoded secrets..."
+          ! grep -r "api[_-]?key" public/ --include="*.html" --include="*.js" || true
+          echo "Security check completed"

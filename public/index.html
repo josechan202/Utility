@@ -3,7 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Format Converter</title>
+    <title>Format Converter - Convert JSON, XML, YAML, CSV Online</title>
+    <meta name="description" content="Free online tool to convert between JSON, XML, YAML, and CSV formats instantly. Fast, secure, and works entirely in your browser with no server uploads.">
+    <meta name="keywords" content="format converter, JSON to XML, XML to JSON, YAML converter, CSV converter, data format conversion">
+    <meta name="author" content="Utility Tools">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Format Converter - Convert JSON, XML, YAML, CSV">
+    <meta property="og:description" content="Free online tool to convert between JSON, XML, YAML, and CSV formats instantly. Secure and privacy-focused.">
+    <meta property="og:image" content="/og-image.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Format Converter">
+    <meta name="twitter:description" content="Convert between JSON, XML, YAML, and CSV formats instantly">
+
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#667eea">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Preconnect to CDN for faster loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
+    <!-- Favicon (add your own favicon files) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
     <style>
         * {
             margin: 0;
@@ -224,11 +259,85 @@
         </div>
     </div>
 
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Configuration -->
+    <script src="/config.js"></script>
+
+    <!-- External Libraries with SRI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"
+            integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"
+            integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+
+    <!-- Optional: Analytics (uncomment and configure) -->
+    <!-- Google Analytics -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script> -->
+    <!-- <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script> -->
+
+    <!-- Plausible Analytics (privacy-friendly alternative) -->
+    <!-- <script defer data-domain="your-app.vercel.app" src="https://plausible.io/js/script.js"></script> -->
 
     <script>
+        // Error Logging and Monitoring
+        const ErrorLogger = {
+            log: function(error, context = {}) {
+                const errorData = {
+                    timestamp: new Date().toISOString(),
+                    message: error.message || error,
+                    stack: error.stack,
+                    context: context,
+                    userAgent: navigator.userAgent,
+                    url: window.location.href
+                };
+
+                // Log to console in development
+                console.error('[Error Logger]', errorData);
+
+                // Optional: Send to monitoring service (uncomment and configure)
+                // this.sendToMonitoring(errorData);
+
+                return errorData;
+            },
+
+            sendToMonitoring: function(errorData) {
+                // Example: Send to a monitoring service
+                // Replace with your actual monitoring endpoint
+                /*
+                fetch('/api/log-error', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(errorData)
+                }).catch(err => console.error('Failed to send error log:', err));
+                */
+            }
+        };
+
+        // Global error handler
+        window.addEventListener('error', function(event) {
+            ErrorLogger.log(event.error, {
+                type: 'uncaught_error',
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno
+            });
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', function(event) {
+            ErrorLogger.log(event.reason, {
+                type: 'unhandled_rejection',
+                promise: event.promise
+            });
+        });
+
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
@@ -445,6 +554,11 @@
 
                 outputTextarea.value = output;
             } catch (error) {
+                ErrorLogger.log(error, {
+                    inputFormat: inputFormat,
+                    outputFormat: outputFormat,
+                    inputLength: inputText.length
+                });
                 showError('Conversion error: ' + error.message);
                 outputTextarea.value = '';
             }

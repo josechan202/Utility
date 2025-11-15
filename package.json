@@ -1,0 +1,41 @@
+{
+  "name": "format-converter",
+  "version": "1.0.0",
+  "description": "A fast, secure, and privacy-focused online tool to convert between JSON, XML, YAML, and CSV formats",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "serve public -l 8000",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "dev": "serve public -l 8000",
+    "preview": "serve public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/Utility.git"
+  },
+  "keywords": [
+    "converter",
+    "json",
+    "xml",
+    "yaml",
+    "csv",
+    "format-converter",
+    "data-conversion",
+    "online-tool"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/Utility/issues"
+  },
+  "homepage": "https://your-app.vercel.app",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "playwright": "^1.40.0",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
