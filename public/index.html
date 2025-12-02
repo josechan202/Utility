@@ -197,6 +197,21 @@
             display: block;
         }
 
+        .ad-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            min-height: 100px;
+        }
+
+        .ad-container.top-ad {
+            border-top: none;
+        }
+
         @media (max-width: 768px) {
             .converter {
                 grid-template-columns: 1fr;
@@ -222,6 +237,19 @@
             <h1>Format Converter</h1>
             <div class="subtitle">Convert between JSON, XML, YAML, and CSV</div>
         </header>
+
+        <!-- AdSense Ad Unit - Top -->
+        <div class="ad-container top-ad">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8868754541983053"
+                 data-ad-slot="auto"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
         <div class="converter">
             <div class="panel">
@@ -257,6 +285,19 @@
                 <button class="clear-btn" onclick="clearAll()">Clear</button>
             </div>
         </div>
+
+        <!-- AdSense Ad Unit - Bottom -->
+        <div class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-8868754541983053"
+                 data-ad-slot="auto"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </div>
 
     <!-- Configuration -->
@@ -271,6 +312,10 @@
             integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8868754541983053"
+            crossorigin="anonymous"></script>
 
     <!-- Optional: Analytics (uncomment and configure) -->
     <!-- Google Analytics -->
