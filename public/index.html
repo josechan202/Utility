@@ -53,9 +53,38 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 1200px;
+        .main-wrapper {
+            display: flex;
+            max-width: 1600px;
             margin: 0 auto;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .side-ad {
+            position: sticky;
+            top: 20px;
+            width: 160px;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .side-ad-unit {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -212,6 +241,16 @@
             border-top: none;
         }
 
+        @media (max-width: 1024px) {
+            .side-ad {
+                display: none;
+            }
+
+            .main-wrapper {
+                justify-content: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .converter {
                 grid-template-columns: 1fr;
@@ -232,14 +271,28 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Format Converter</h1>
-            <div class="subtitle">Convert between JSON, XML, YAML, and CSV</div>
-        </header>
+    <div class="main-wrapper">
+        <!-- Left Side Ad -->
+        <div class="side-ad">
+            <div class="side-ad-unit">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:160px;height:600px"
+                     data-ad-client="ca-pub-8868754541983053"
+                     data-ad-slot="auto"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </div>
 
-        <!-- AdSense Ad Unit - Top -->
-        <div class="ad-container top-ad">
+        <div class="container">
+            <header>
+                <h1>Format Converter</h1>
+                <div class="subtitle">Convert between JSON, XML, YAML, and CSV</div>
+            </header>
+
+            <!-- AdSense Ad Unit - Top -->
+            <div class="ad-container top-ad">
             <ins class="adsbygoogle"
                  style="display:block"
                  data-ad-client="ca-pub-8868754541983053"
@@ -286,17 +339,31 @@
             </div>
         </div>
 
-        <!-- AdSense Ad Unit - Bottom -->
-        <div class="ad-container">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-8868754541983053"
-                 data-ad-slot="auto"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <!-- AdSense Ad Unit - Bottom -->
+            <div class="ad-container">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-8868754541983053"
+                     data-ad-slot="auto"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </div>
+
+        <!-- Right Side Ad -->
+        <div class="side-ad">
+            <div class="side-ad-unit">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:160px;height:600px"
+                     data-ad-client="ca-pub-8868754541983053"
+                     data-ad-slot="auto"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
         </div>
     </div>
 
